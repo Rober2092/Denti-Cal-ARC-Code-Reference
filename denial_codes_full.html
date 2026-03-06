@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Denti-Cal ARC Code Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg:        #f0f2f5;
+    --white:     #ffffff;
+    --navy:      #1b3a5c;
+    --navy-mid:  #254d7a;
+    --navy-soft: #e8eef5;
+    --border:    #d0d5dd;
+    --text:      #1a1a2e;
+    --muted:     #6b7280;
+    --accent:    #1b3a5c;
+
+    --cat-diag:    #4e9af1;
+    --cat-surgery: #e85d3a;
+    --cat-drugs:   #9b59b6;
+    --cat-perio:   #2ecc71;
+    --cat-endo:    #f39c12;
+    --cat-restore: #1abc9c;
+    --cat-prosth:  #e91e8c;
+    --cat-ortho:   #00bcd4;
+    --cat-misc:    #7f8c8d;
+    --cat-policy:  #e74c3c;
+
+    --tint-diag:    #eaf3fe;
+    --tint-surgery: #fdeee9;
+    --tint-drugs:   #f5eefa;
+    --tint-perio:   #e8f9ef;
+    --tint-endo:    #fef6e6;
+    --tint-restore: #e7f8f5;
+    --tint-prosth:  #fde8f4;
+    --tint-ortho:   #e4f7fb;
+    --tint-misc:    #f4f5f6;
+    --tint-policy:  #fdeaea;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* ── Title Banner ── */
+  .title-banner {
+    background: var(--navy);
+    color: #fff;
+    text-align: center;
+    padding: 18px 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    border-bottom: 3px solid var(--navy-mid);
+  }
+  .title-banner span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 400;
+    font-size: 0.78rem;
+    opacity: 0.75;
+    margin-left: 12px;
+  }
+
+  /* ── Sub-header (badge + controls) ── */
+  .sub-header {
+    max-width: 1200px;
+    margin: 20px auto 0;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .total-badge {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--navy);
+    border-radius: 6px;
+    padding: 10px 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .total-badge .num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--navy);
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1;
+  }
+  .total-badge .lbl {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+
+  /* ── Controls ── */
+  .controls {
+    max-width: 1200px;
+    margin: 16px auto 0;
+    padding: 0 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 14px 9px 36px;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .search-wrap input:focus {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(27, 58, 92, 0.1);
+  }
+  .search-wrap .icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+
+  .filter-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--muted);
+    font-size: 0.74rem;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: var(--navy); color: var(--navy); background: var(--navy-soft); }
+  .filter-btn.active { color: #fff; border-color: transparent; font-weight: 600; }
+
+  .filter-btn[data-cat="All"].active                    { background: var(--navy); }
+  .filter-btn[data-cat="Diagnostic/Preventive"].active  { background: var(--cat-diag); }
+  .filter-btn[data-cat="Oral Surgery"].active           { background: var(--cat-surgery); }
+  .filter-btn[data-cat="Drugs/Anesthesia"].active       { background: var(--cat-drugs); }
+  .filter-btn[data-cat="Periodontics"].active           { background: var(--cat-perio); }
+  .filter-btn[data-cat="Endodontics"].active            { background: var(--cat-endo); }
+  .filter-btn[data-cat="Restorative"].active            { background: var(--cat-restore); }
+  .filter-btn[data-cat="Prosthodontics"].active         { background: var(--cat-prosth); }
+  .filter-btn[data-cat="Orthodontic Services"].active   { background: var(--cat-ortho); }
+  .filter-btn[data-cat="Miscellaneous"].active          { background: var(--cat-misc); }
+  .filter-btn[data-cat="Payment Policy"].active         { background: var(--cat-policy); }
+
+  /* ── Results count ── */
+  .results-count {
+    max-width: 1200px;
+    margin: 10px auto 8px;
+    padding: 0 20px;
+    font-size: 0.74rem;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* ── Table ── */
+  .table-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  }
+
+  thead tr {
+    background: var(--navy);
+  }
+
+  thead th {
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(255,255,255,0.9);
+    font-weight: 600;
+    border-bottom: 2px solid var(--navy-mid);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: filter 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { filter: brightness(0.96); }
+
+  tbody td {
+    padding: 10px 16px;
+    vertical-align: top;
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
+  /* Category row tints */
+  tr.tint-diag    { background: var(--tint-diag); }
+  tr.tint-surgery { background: var(--tint-surgery); }
+  tr.tint-drugs   { background: var(--tint-drugs); }
+  tr.tint-perio   { background: var(--tint-perio); }
+  tr.tint-endo    { background: var(--tint-endo); }
+  tr.tint-restore { background: var(--tint-restore); }
+  tr.tint-prosth  { background: var(--tint-prosth); }
+  tr.tint-ortho   { background: var(--tint-ortho); }
+  tr.tint-misc    { background: var(--tint-misc); }
+  tr.tint-policy  { background: var(--tint-policy); }
+
+  .col-code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 0.88rem;
+    white-space: nowrap;
+    color: var(--navy);
+  }
+
+  .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 7px;
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
+
+  .col-cat {
+    font-size: 0.78rem;
+    white-space: nowrap;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .col-cat span { vertical-align: middle; }
+
+  .col-desc { color: var(--text); }
+
+  .highlight {
+    background: rgba(27, 58, 92, 0.15);
+    border-radius: 2px;
+    padding: 0 2px;
+    font-weight: 600;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 48px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+  }
+
+  /* Category color dots */
+  .c-diag    { background: var(--cat-diag); }
+  .c-surgery { background: var(--cat-surgery); }
+  .c-drugs   { background: var(--cat-drugs); }
+  .c-perio   { background: var(--cat-perio); }
+  .c-endo    { background: var(--cat-endo); }
+  .c-restore { background: var(--cat-restore); }
+  .c-prosth  { background: var(--cat-prosth); }
+  .c-ortho   { background: var(--cat-ortho); }
+  .c-misc    { background: var(--cat-misc); }
+  .c-policy  { background: var(--cat-policy); }
+
+  /* Star badge for codes found in denial export */
+  tr.in-data .col-code::after {
+    content: '★';
+    color: var(--cat-surgery);
+    font-size: 0.7rem;
+    margin-left: 5px;
+    vertical-align: top;
+  }
+
+  .legend {
+    max-width: 1200px;
+    margin: 12px auto 0;
+    padding: 0 20px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .legend span { color: var(--cat-surgery); }
+</style>
+</head>
+<body>
+
+<div class="title-banner">
+  Medi-Cal Dental (Denti-Cal) — Adjudication Reason Codes (ARC)
+  <span>Official Source: dental.dhcs.ca.gov · Provider Handbook Section 7 (2025) · All 203 codes</span>
+</div>
+
+<div class="sub-header">
+  <div style="flex:1; min-width:220px;">
+    <div class="search-wrap">
+      <span class="icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search by code, description, or category…">
+    </div>
+  </div>
+  <div class="total-badge">
+    <div class="num" id="total-count">203</div>
+    <div class="lbl">Total Codes</div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="filter-btns" id="filterBtns">
+    <button class="filter-btn active" data-cat="All">All (203)</button>
+    <button class="filter-btn" data-cat="Diagnostic/Preventive">Diagnostic/Preventive (54)</button>
+    <button class="filter-btn" data-cat="Oral Surgery">Oral Surgery (17)</button>
+    <button class="filter-btn" data-cat="Drugs/Anesthesia">Drugs/Anesthesia (6)</button>
+    <button class="filter-btn" data-cat="Periodontics">Periodontics (24)</button>
+    <button class="filter-btn" data-cat="Endodontics">Endodontics (9)</button>
+    <button class="filter-btn" data-cat="Restorative">Restorative (14)</button>
+    <button class="filter-btn" data-cat="Prosthodontics">Prosthodontics (17)</button>
+    <button class="filter-btn" data-cat="Orthodontic Services">Orthodontic Services (3)</button>
+    <button class="filter-btn" data-cat="Miscellaneous">Miscellaneous (53)</button>
+    <button class="filter-btn" data-cat="Payment Policy">Payment Policy (6)</button>
+  </div>
+</div>
+
+<div class="results-count" id="resultsCount">Showing 203 codes</div>
+
+<div class="table-wrap">
+  <table id="arcTable">
+    <thead>
+      <tr>
+        <th style="width:90px">ARC Code</th>
+        <th style="width:200px">Category</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<div class="legend">★ <span>Starred codes</span> appeared in your Dec 2025 – Feb 2026 denial export</div>
+
+<script>
+const ARC_DATA = [{"Code": "001", "Category": "Diagnostic/Preventive", "Description": "Procedure is a benefit once per patient, per provider."}, {"Code": "001A", "Category": "Diagnostic/Preventive", "Description": "An orthodontic evaluation is a benefit only once per patient, per provider."}, {"Code": "002", "Category": "Diagnostic/Preventive", "Description": "Procedure D0150 is payable once every 36 months from the last D0120 or D0150."}, {"Code": "002A", "Category": "Diagnostic/Preventive", "Description": "Evaluation is not a benefit within six months of a previous evaluation to the same provider for members under age 21 or does not meet CRA criteria."}, {"Code": "002B", "Category": "Diagnostic/Preventive", "Description": "Evaluation is not a benefit within 12 months of a previous evaluation for patients age 21 and older to the same provider."}, {"Code": "003", "Category": "Diagnostic/Preventive", "Description": "Procedure not payable in conjunction with other oral evaluation procedures for the same date of service."}, {"Code": "004", "Category": "Diagnostic/Preventive", "Description": "Procedure D0120 is only a benefit when there is history of Procedure D0150 to the same provider."}, {"Code": "004A", "Category": "Diagnostic/Preventive", "Description": "Procedure D1320 is only a benefit when billed on the same date of service as procedure D0120, D0150, D1110, D1120, D4341, D4342, or D4910 to the same provider."}, {"Code": "005", "Category": "Diagnostic/Preventive", "Description": "Procedure is a benefit once in a three-month period for patients under age three."}, {"Code": "006", "Category": "Diagnostic/Preventive", "Description": "Procedure is a benefit once per tooth."}, {"Code": "008", "Category": "Diagnostic/Preventive", "Description": "Procedure was not adequately documented."}, {"Code": "009", "Category": "Diagnostic/Preventive", "Description": "Procedure not a benefit when specific services other than radiographs or photographs are provided on the same day by the same provider."}, {"Code": "019", "Category": "Diagnostic/Preventive", "Description": "The procedure has been modified due to the age of the patient and/or previous history to allow the maximum benefit."}, {"Code": "020C", "Category": "Diagnostic/Preventive", "Description": "Prophy and fluoride procedures are allowable once in a six-month period."}, {"Code": "020D", "Category": "Diagnostic/Preventive", "Description": "Prophy and fluoride procedures are allowable once in a 12-month period."}, {"Code": "020E", "Category": "Diagnostic/Preventive", "Description": "Procedure will not be considered within 90 days of a previous prophylaxis and/or fluoride procedure."}, {"Code": "020F", "Category": "Diagnostic/Preventive", "Description": "Prophy and a topical fluoride treatment performed on the same date of service are not payable separately."}, {"Code": "020G", "Category": "Diagnostic/Preventive", "Description": "Topical application of fluoride is payable only for caries control."}, {"Code": "020H", "Category": "Diagnostic/Preventive", "Description": "Prophy and fluoride procedures are allowable once in a 4-month period when the patient resides in an ICF or SNF licensed pursuant to Health & Safety Code section 1250-1264."}, {"Code": "020I", "Category": "Diagnostic/Preventive", "Description": "Patients under age 6: fluoride procedures allowable once in a 4-month period; prophy procedures allowable once in a 6-month period."}, {"Code": "022", "Category": "Diagnostic/Preventive", "Description": "Full mouth or panographic X-rays are a benefit once in a three-year period."}, {"Code": "023", "Category": "Diagnostic/Preventive", "Description": "A benefit twice in a six-month period per provider."}, {"Code": "024", "Category": "Diagnostic/Preventive", "Description": "A benefit once in a 12-month period per provider."}, {"Code": "024A", "Category": "Diagnostic/Preventive", "Description": "Non-diagnostic X-rays not payable: Cone cutting, creases, stains, distortion, or poor density."}, {"Code": "024B", "Category": "Diagnostic/Preventive", "Description": "Non-diagnostic X-rays not payable: Apices, crowns, and/or surrounding bone not visible."}, {"Code": "024C", "Category": "Diagnostic/Preventive", "Description": "Non-diagnostic X-rays not payable: Interproximal spaces overlapping."}, {"Code": "024D", "Category": "Diagnostic/Preventive", "Description": "Non-diagnostic X-rays not payable: Bone structure distal to the last tooth not shown."}, {"Code": "024E", "Category": "Diagnostic/Preventive", "Description": "Non-diagnostic X-rays not payable: Complete arch not shown in films submitted."}, {"Code": "024F", "Category": "Diagnostic/Preventive", "Description": "Non-diagnostic X-rays not payable: Artifacts obscure teeth."}, {"Code": "026", "Category": "Diagnostic/Preventive", "Description": "Panographic type films submitted as a diagnostic aid for periodontics, endodontics, operative dentistry or extractions in one quadrant only are paid as single periapical radiographs."}, {"Code": "027", "Category": "Diagnostic/Preventive", "Description": "Procedure is not a benefit for edentulous areas."}, {"Code": "028", "Category": "Diagnostic/Preventive", "Description": "A benefit once in a six-month period per provider."}, {"Code": "028A", "Category": "Diagnostic/Preventive", "Description": "Procedure D0272 or D0274 is not a benefit within six months of Procedure D0210, D0272, or D0274, same provider."}, {"Code": "028B", "Category": "Diagnostic/Preventive", "Description": "Procedure D0210 is not a benefit within six months of Procedure D0272 or D0274, same provider."}, {"Code": "029", "Category": "Diagnostic/Preventive", "Description": "Payment/Authorization denied due to multiple unmounted radiographs."}, {"Code": "029A", "Category": "Diagnostic/Preventive", "Description": "Payment/Authorization denied due to undated radiographs or photographs."}, {"Code": "029B", "Category": "Diagnostic/Preventive", "Description": "Payment/Authorization denied. Final endodontic radiograph is dated prior to the completion date of the endodontic treatment."}, {"Code": "029C", "Category": "Diagnostic/Preventive", "Description": "Payment/Authorization denied due to multiple, unspecified dates on the X-ray mount/envelope."}, {"Code": "029D", "Category": "Diagnostic/Preventive", "Description": "Payment/Authorization denied. Date(s) on X-ray mount, envelope or photograph(s) are not legible or the format is not understandable/decipherable."}, {"Code": "029E", "Category": "Diagnostic/Preventive", "Description": "Payment denied due to date of radiographs/photographs being after the date of service or appearing to be post-operative."}, {"Code": "029F", "Category": "Diagnostic/Preventive", "Description": "Payment/Authorization denied: member name does not match or is not on the X-ray mount, envelope or photograph."}, {"Code": "029G", "Category": "Diagnostic/Preventive", "Description": "Payment/Authorization disallowed due to radiographs/photographs dated in the future."}, {"Code": "029H", "Category": "Diagnostic/Preventive", "Description": "Payment/Authorization denied due to more than four paper copies of radiographs/photographs submitted."}, {"Code": "029I", "Category": "Diagnostic/Preventive", "Description": "Payment/Authorization denied. Radiographs/photographs do not meet two or more of the following: diagnostic quality, properly mounted, labeled with date, patient name, and tooth/quadrant/area."}, {"Code": "030", "Category": "Diagnostic/Preventive", "Description": "An adjustment has been made for the maximum allowable radiographs."}, {"Code": "030A", "Category": "Diagnostic/Preventive", "Description": "Adjustment made for the maximum allowable X-rays. Bitewings are of the same side."}, {"Code": "030B", "Category": "Diagnostic/Preventive", "Description": "Combination of radiographs is equal to a complete series."}, {"Code": "030C", "Category": "Diagnostic/Preventive", "Description": "Adjustment made for maximum allowable X-rays. Submitted number of X-rays differ from the number billed."}, {"Code": "030D", "Category": "Diagnostic/Preventive", "Description": "Periapicals are limited to 20 in any consecutive 12-month period."}, {"Code": "036", "Category": "Diagnostic/Preventive", "Description": "The dental sealant procedure code has been modified to correspond to the submitted tooth code."}, {"Code": "037", "Category": "Diagnostic/Preventive", "Description": "Replacement/repair of a dental sealant is included in the fee to the original provider for 36 months."}, {"Code": "038", "Category": "Diagnostic/Preventive", "Description": "Procedure is only a benefit when the tooth surfaces to be sealed are decay/restoration free."}, {"Code": "039", "Category": "Diagnostic/Preventive", "Description": "Dental sealants are only payable when the occlusal surface is included."}, {"Code": "039A", "Category": "Diagnostic/Preventive", "Description": "Preventive resin restoration is only payable for the occlusal, buccal, and/or lingual surfaces."}, {"Code": "043", "Category": "Oral Surgery", "Description": "Resubmit a new authorization request following completion of surgical procedure(s) that may affect prognosis of treatment plan as submitted."}, {"Code": "045", "Category": "Oral Surgery", "Description": "Due to the absence of a surgical, laboratory, or appropriate report, payment will be made according to the maximum fee allowance."}, {"Code": "046", "Category": "Oral Surgery", "Description": "Routine post-operative visits within 30 days are included in the global fee for the surgical procedure."}, {"Code": "046A", "Category": "Oral Surgery", "Description": "Postoperative visits are not payable after 30 days following the surgical procedure."}, {"Code": "047", "Category": "Oral Surgery", "Description": "Postoperative care within 90 days by the same provider is not payable."}, {"Code": "047A", "Category": "Oral Surgery", "Description": "Postoperative care within 30 days by the same provider is not payable."}, {"Code": "047B", "Category": "Oral Surgery", "Description": "Postoperative care within 24 months by the same provider is not payable."}, {"Code": "048", "Category": "Oral Surgery", "Description": "Extraction of a tooth is not payable when pathology is not demonstrated in the radiograph, or when narrative documentation submitted does not coincide with the radiographic evidence."}, {"Code": "049", "Category": "Oral Surgery", "Description": "Extractions are not payable for deciduous teeth near exfoliation."}, {"Code": "050", "Category": "Oral Surgery", "Description": "Surgical extraction procedure has been modified to conform with radiographic appearance."}, {"Code": "052", "Category": "Oral Surgery", "Description": "The removal of residual root tips is not a benefit to the same provider who performed the initial extraction."}, {"Code": "053", "Category": "Oral Surgery", "Description": "The removal of exposed root tips is not a benefit to the same provider who performed the initial extraction."}, {"Code": "054", "Category": "Oral Surgery", "Description": "Routine alveoloplasty procedures in conjunction with extractions are considered part of the extraction procedure."}, {"Code": "054A", "Category": "Oral Surgery", "Description": "Procedure is not a benefit within six months of extractions in the same quadrant."}, {"Code": "054B", "Category": "Oral Surgery", "Description": "Alveoloplasty is not a benefit in conjunction with 2 or more surgical extractions in the same quadrant."}, {"Code": "055", "Category": "Oral Surgery", "Description": "Diagnostic X-rays fully depicting subject tooth (teeth) are required for intraoral surgical procedures."}, {"Code": "060", "Category": "Oral Surgery", "Description": "Procedure D9410 is payable only when associated with procedures that are a payable benefit."}, {"Code": "062", "Category": "Drugs/Anesthesia", "Description": "General Anesthesia is not a benefit when the anesthesia record does not indicate an anesthetic agent was administered. Intravenous conscious sedation is the maximum benefit."}, {"Code": "063", "Category": "Drugs/Anesthesia", "Description": "Only the most profound level of anesthesia is payable per date of service. This procedure is considered global and is included in the fee for the allowed anesthesia procedure."}, {"Code": "069", "Category": "Drugs/Anesthesia", "Description": "Procedure is not a benefit when all additional services are denied or when there are no additional services submitted for the same date of service."}, {"Code": "070", "Category": "Drugs/Anesthesia", "Description": "Anesthesia procedures are not payable when diagnostic procedures are the only services provided and the medical necessity is not justified."}, {"Code": "071", "Category": "Drugs/Anesthesia", "Description": "Intravenous Sedation or General Anesthesia is not deemed medically necessary based on the treatment plan and/or documentation submitted."}, {"Code": "013B", "Category": "Drugs/Anesthesia", "Description": "Procedure D9410 is not payable when the treatment is performed in the provider's office or provider-owned ambulatory surgical center."}, {"Code": "072", "Category": "Periodontics", "Description": "Periodontal procedure requires documentation specifying the definitive periodontal diagnosis."}, {"Code": "073", "Category": "Periodontics", "Description": "Periodontal chart not current."}, {"Code": "073A", "Category": "Periodontics", "Description": "Periodontal chart not current. Older than 14 months."}, {"Code": "073B", "Category": "Periodontics", "Description": "Periodontal chart not current. Periodontal treatment performed after charting date."}, {"Code": "073C", "Category": "Periodontics", "Description": "Periodontal chart not current. Charting date missing or illegible."}, {"Code": "073D", "Category": "Periodontics", "Description": "Periodontal chart not current. Charting date invalid or dated in the future."}, {"Code": "073E", "Category": "Periodontics", "Description": "Periodontal chart not current. Older than 12 months."}, {"Code": "074A", "Category": "Periodontics", "Description": "Periodontal procedure disallowed due to inadequate charting: Pocket depths."}, {"Code": "074B", "Category": "Periodontics", "Description": "Periodontal procedure disallowed due to inadequate charting: Mobility."}, {"Code": "074C", "Category": "Periodontics", "Description": "Periodontal procedure disallowed due to inadequate charting: Teeth to be extracted."}, {"Code": "074D", "Category": "Periodontics", "Description": "Periodontics procedure disallowed due to inadequate charting of two or more of the above."}, {"Code": "076", "Category": "Periodontics", "Description": "A benefit twice in a 12-month period per provider."}, {"Code": "077A", "Category": "Periodontics", "Description": "Periodontal procedures are not benefits for patients under 13 years of age except when unusual circumstances exist and the medical necessity is documented."}, {"Code": "080", "Category": "Periodontics", "Description": "A prophy or prophy and fluoride procedure is not payable on the same date of service as a surgical periodontal procedure."}, {"Code": "081", "Category": "Periodontics", "Description": "Based on all submitted documentation, the medical necessity for scaling and root planing (bone loss) has not been established."}, {"Code": "081A", "Category": "Periodontics", "Description": "Periodontal evaluation chart does not coincide with submitted radiographic evidence."}, {"Code": "083A", "Category": "Periodontics", "Description": "Surgical periodontal procedure cannot be authorized within 30 days following periodontal scaling and root planing for the same quadrant."}, {"Code": "085A", "Category": "Periodontics", "Description": "Periodontal post-operative care is not a benefit when requested within 3 months by the same provider."}, {"Code": "085B", "Category": "Periodontics", "Description": "Only one Scaling and Root Planing, Perio Maintenance, or Prophylaxis procedure is allowable within the same calendar quarter."}, {"Code": "086", "Category": "Periodontics", "Description": "Periodontal scaling and root planing must be performed within 24 months prior to authorization of a surgical periodontal procedure for the same quadrant."}, {"Code": "086A", "Category": "Periodontics", "Description": "Perio Maintenance is a benefit only when Scaling and Root Planing has been performed within 24 months."}, {"Code": "086B", "Category": "Periodontics", "Description": "Full Mouth Debridement (D4355) is not payable when rendered within 24 months of a scaling and root planing."}, {"Code": "088", "Category": "Periodontics", "Description": "Procedure is a benefit once per quadrant every 24 months."}, {"Code": "088A", "Category": "Periodontics", "Description": "Procedure is a benefit once per quadrant every 36 months."}, {"Code": "091", "Category": "Endodontics", "Description": "Procedure(s) require diagnostic radiographs depicting entire subject tooth."}, {"Code": "092", "Category": "Endodontics", "Description": "Payment request for root canal treatment and apicoectomy must be accompanied by a final treatment radiograph and include necessary postoperative care within 90 days."}, {"Code": "093A", "Category": "Endodontics", "Description": "Endodontic procedure is not payable when root canal filling is underfilled."}, {"Code": "093B", "Category": "Endodontics", "Description": "Endodontic procedure is not payable when root canal filling is overfilled."}, {"Code": "093C", "Category": "Endodontics", "Description": "Endodontic procedure is not payable: Incomplete apical treatment due to inadequate retrograde fill and/or sealing of the apex."}, {"Code": "096", "Category": "Endodontics", "Description": "Procedure not a benefit in conjunction with a full denture or overdenture."}, {"Code": "097", "Category": "Endodontics", "Description": "Need for root canal procedure not evident per radiograph appearance or documentation submitted."}, {"Code": "099", "Category": "Endodontics", "Description": "A benefit once per tooth in a six-month period per provider."}, {"Code": "100", "Category": "Endodontics", "Description": "Procedure is not a benefit for an endodontically treated tooth."}, {"Code": "109", "Category": "Restorative", "Description": "Procedures D2161, D2335, D2390, and D2394 are the maximum allowances for all restorations of the same material placed in a single tooth for the same date of service."}, {"Code": "111", "Category": "Restorative", "Description": "Payment/authorization is made for an individual surface once for the same date of service regardless of the number or combinations of restorations or materials placed on that surface."}, {"Code": "112", "Category": "Restorative", "Description": "Separate restorations of the same material on the same tooth will be considered as connected for payment/authorization purposes."}, {"Code": "113", "Category": "Restorative", "Description": "Tooth does not meet the Manual of Criteria for a laboratory processed crown. Please re-evaluate for alternate treatment."}, {"Code": "113A", "Category": "Restorative", "Description": "Per history, radiographs or photographs, this tooth has been recently restored with a restoration or pre-fabricated crown."}, {"Code": "113C", "Category": "Restorative", "Description": "Laboratory processed crowns for adults are not a benefit for posterior teeth except as abutments for any fixed or removable prosthesis with cast clasps or rests."}, {"Code": "114", "Category": "Restorative", "Description": "Tooth and soft tissue preparation, crown lengthening, cement bases, build-ups, bonding agents, occlusal adjustments, local anesthesia, and other associated procedures are included in the fee for a completed restorative service."}, {"Code": "117", "Category": "Restorative", "Description": "Procedure not a benefit for a primary tooth near exfoliation."}, {"Code": "120", "Category": "Restorative", "Description": "A panoramic film alone is non-diagnostic for authorization or payment of restorative, endodontic, periodontic, fixed and removable partial prosthodontic procedures."}, {"Code": "121", "Category": "Restorative", "Description": "Radiographs do not substantiate immediate need for restoration of surface(s) requested."}, {"Code": "122", "Category": "Restorative", "Description": "Tooth does not meet the Manual of Criteria for a prefabricated crown."}, {"Code": "125", "Category": "Restorative", "Description": "Replacement restorations are not a benefit within 12 months on primary teeth and within 24 months on permanent teeth."}, {"Code": "128", "Category": "Restorative", "Description": "Cast and prefabricated posts are benefits in endodontically treated devitalized permanent teeth only when crowns have been authorized and/or paid by the program."}, {"Code": "135", "Category": "Restorative", "Description": "Procedure not a benefit for third molars unless the third molar occupies the first or second molar position or is an abutment for an existing removable partial denture with cast clasps or rests."}, {"Code": "138", "Category": "Prosthodontics", "Description": "Partial payment for an undeliverable prosthesis requires the reason for non-delivery to be adequately documented and a laboratory invoice indicating the prosthesis was processed."}, {"Code": "142", "Category": "Prosthodontics", "Description": "A prosthesis has been paid within the last 12 months. Please refer the patient to the original provider and/or Member Services at 1 (800) 322-6384."}, {"Code": "143", "Category": "Prosthodontics", "Description": "Authorization not granted for a replacement prosthesis within a five-year period. Insufficient documentation substantiating need."}, {"Code": "146", "Category": "Prosthodontics", "Description": "A removable partial denture includes all necessary clasps, rests and teeth."}, {"Code": "147", "Category": "Prosthodontics", "Description": "Cast framework partial denture is only a benefit when necessary to balance an opposing full denture."}, {"Code": "152", "Category": "Prosthodontics", "Description": "Relines are a benefit 6 months following an immediate prosthesis (with extractions)."}, {"Code": "153", "Category": "Prosthodontics", "Description": "Relines are a benefit 12 months following a non-immediate prosthesis (without extractions)."}, {"Code": "155", "Category": "Prosthodontics", "Description": "Procedure requires a properly completed prosthetic DC054 form (patient name, date completed, and provider signature)."}, {"Code": "155A", "Category": "Prosthodontics", "Description": "Procedure requires a properly completed Prosthetic DC054 form. Information submitted does not justify the need for prosthesis."}, {"Code": "155B", "Category": "Prosthodontics", "Description": "Procedure requires a properly completed Prosthetic DC054 form. Information submitted does not match the information on the TAR."}, {"Code": "155C", "Category": "Prosthodontics", "Description": "Procedure requires a properly completed Prosthetic DC054 Form. Teeth to be replaced and clasped are not indicated or are in conflict on the DC054 Form."}, {"Code": "160", "Category": "Prosthodontics", "Description": "Laboratory or chairside relines are a benefit once in a 12-month period per arch."}, {"Code": "162", "Category": "Prosthodontics", "Description": "Patient's existing prosthesis is adequate at this time."}, {"Code": "170", "Category": "Prosthodontics", "Description": "A reline, tissue conditioning, repair, or an adjustment is not a benefit without an existing prosthesis."}, {"Code": "171", "Category": "Prosthodontics", "Description": "The repair or adjustment of a removable prosthesis is a benefit twice in a 12-month period, per provider."}, {"Code": "173", "Category": "Prosthodontics", "Description": "Prosthetic appliances (full dentures, partial dentures, reconstructions, and stayplates) are a benefit once in any five-year period."}, {"Code": "175", "Category": "Prosthodontics", "Description": "The fee allowed for any removable prosthetic appliance, reline, reconstruction or repair includes all adjustments and post-operative exams necessary for 12 months."}, {"Code": "199", "Category": "Orthodontic Services", "Description": "Patients under age 13 with mixed dentition do not qualify for handicapping orthodontic malocclusion treatment."}, {"Code": "200", "Category": "Orthodontic Services", "Description": "Adjustments of banding and/or appliances are allowable once per calendar month."}, {"Code": "202", "Category": "Orthodontic Services", "Description": "Procedure is a benefit only once per patient."}, {"Code": "258", "Category": "Miscellaneous", "Description": "Functional limitations or health condition of the patient preclude(s) the requested procedure."}, {"Code": "259A", "Category": "Miscellaneous", "Description": "Procedure not a benefit within 6 months to the same provider."}, {"Code": "259B", "Category": "Miscellaneous", "Description": "Procedure not a benefit within 12 months to the same provider."}, {"Code": "259C", "Category": "Miscellaneous", "Description": "Procedure not a benefit within 36 months to the same provider."}, {"Code": "259D", "Category": "Miscellaneous", "Description": "Procedure not a benefit within 24 months to the same provider."}, {"Code": "260", "Category": "Miscellaneous", "Description": "The requested tooth, surface, arch, or quadrant is not a benefit for this procedure."}, {"Code": "261", "Category": "Miscellaneous", "Description": "Procedure is not a benefit under the Manual of Criteria."}, {"Code": "261A", "Category": "Miscellaneous", "Description": "Procedure code is missing or is not a valid code for age 21 and over. For under age 21, this procedure does not meet the EPSDT criteria."}, {"Code": "261B", "Category": "Miscellaneous", "Description": "CDT codes are not valid for this date of service."}, {"Code": "262", "Category": "Miscellaneous", "Description": "Procedure requested is not a benefit for children."}, {"Code": "263", "Category": "Miscellaneous", "Description": "Procedure requested is not a benefit for adults."}, {"Code": "264", "Category": "Miscellaneous", "Description": "Procedure requested is not a benefit for primary teeth."}, {"Code": "265", "Category": "Miscellaneous", "Description": "Procedure requested is not a benefit for permanent teeth."}, {"Code": "266A", "Category": "Miscellaneous", "Description": "Payment/authorization disallowed: radiographs or photographs are not current."}, {"Code": "266B", "Category": "Miscellaneous", "Description": "Payment/authorization disallowed: lack of radiographs."}, {"Code": "266C", "Category": "Miscellaneous", "Description": "Payment/authorization disallowed: radiographs or photographs are non-diagnostic for the requested procedure."}, {"Code": "266D", "Category": "Miscellaneous", "Description": "Payment/authorization disallowed: procedure requires current radiographs of the remaining teeth for evaluation of the arches."}, {"Code": "266E", "Category": "Miscellaneous", "Description": "Payment/authorization disallowed: lack of postoperative radiographs."}, {"Code": "266F", "Category": "Miscellaneous", "Description": "Payment/authorization disallowed: procedure requires current periapicals of the involved areas for the requested quadrant and bitewing radiographs."}, {"Code": "266G", "Category": "Miscellaneous", "Description": "Payment/authorization disallowed: unable to evaluate treatment. Photographs, digitized images, paper copies, or duplicate radiographs are not labeled adequately to determine right or left or individual tooth numbers."}, {"Code": "266H", "Category": "Miscellaneous", "Description": "Payment/authorization disallowed: radiographs submitted to establish arch integrity are non-diagnostic."}, {"Code": "267", "Category": "Miscellaneous", "Description": "Documentation not submitted."}, {"Code": "267A", "Category": "Miscellaneous", "Description": "Description of service, procedure code and/or documentation are in conflict with each other."}, {"Code": "267B", "Category": "Miscellaneous", "Description": "Documentation insufficient/not submitted: required periodontal chart incomplete/not submitted."}, {"Code": "267C", "Category": "Miscellaneous", "Description": "Documentation insufficient/not submitted: documentation is illegible."}, {"Code": "267D", "Category": "Miscellaneous", "Description": "Documentation insufficient/not submitted: study models not submitted."}, {"Code": "267I", "Category": "Miscellaneous", "Description": "Documentation submitted is incomplete and/or undated."}, {"Code": "268", "Category": "Miscellaneous", "Description": "Per radiographs, documentation or photographs, the need for the procedure is not medically necessary."}, {"Code": "269A", "Category": "Miscellaneous", "Description": "Procedure denied: included in the fee for another procedure and is not payable separately (global procedure)."}, {"Code": "269B", "Category": "Miscellaneous", "Description": "Procedure denied: this procedure is not allowable in conjunction with another procedure."}, {"Code": "269C", "Category": "Miscellaneous", "Description": "Procedure denied: associated with another denied procedure."}, {"Code": "270", "Category": "Miscellaneous", "Description": "Procedure has been modified based on the description of service, procedure code, tooth number or surface(s), or documentation."}, {"Code": "271A", "Category": "Miscellaneous", "Description": "Procedure disallowed: bone loss, mobility, periodontal pathology."}, {"Code": "271B", "Category": "Miscellaneous", "Description": "Procedure disallowed: apical radiolucency."}, {"Code": "271C", "Category": "Miscellaneous", "Description": "Procedure disallowed: arch lacks integrity."}, {"Code": "271E", "Category": "Miscellaneous", "Description": "Procedure disallowed: tooth/teeth have poor prognosis."}, {"Code": "271F", "Category": "Miscellaneous", "Description": "Procedure disallowed: gross destruction of crown or root."}, {"Code": "274", "Category": "Miscellaneous", "Description": "Comprehensive (full mouth) treatment plan is required for consideration of services requested."}, {"Code": "275", "Category": "Miscellaneous", "Description": "This procedure has been modified/disallowed to reflect the maximum benefit under this program."}, {"Code": "279", "Category": "Miscellaneous", "Description": "Procedure(s) beyond scope of program. If you wish, submit alternate treatment plan."}, {"Code": "280", "Category": "Miscellaneous", "Description": "Not payable when condition is asymptomatic."}, {"Code": "281", "Category": "Miscellaneous", "Description": "Services solely for esthetic purposes are not benefits."}, {"Code": "282", "Category": "Miscellaneous", "Description": "By-report procedure documentation missing or insufficient for payment calculations."}, {"Code": "284", "Category": "Miscellaneous", "Description": "Radiographs reveal that additional procedures are necessary before authorization of the requested service(s) can be considered."}, {"Code": "285", "Category": "Miscellaneous", "Description": "Procedure does not show evidence of a reasonable period of longevity."}, {"Code": "286", "Category": "Miscellaneous", "Description": "Procedure previously rendered."}, {"Code": "287", "Category": "Miscellaneous", "Description": "Allowance made for alternate procedure per documentation, radiographs, photographs and/or history."}, {"Code": "288", "Category": "Miscellaneous", "Description": "Procedure cannot be considered an emergency."}, {"Code": "289", "Category": "Miscellaneous", "Description": "Procedure requires prior authorization."}, {"Code": "290", "Category": "Miscellaneous", "Description": "All services performed in a skilled nursing or intermediate care facility, except diagnostic and emergency services, require prior authorization."}, {"Code": "291", "Category": "Miscellaneous", "Description": "Per date of service, procedure was completed prior to date of authorization."}, {"Code": "292", "Category": "Miscellaneous", "Description": "Per documentation or radiographs, procedure requiring prior authorization has already been completed."}, {"Code": "293", "Category": "Miscellaneous", "Description": "Per radiographs, procedure requested is inadequate to correct problem. Please submit alternate treatment plan."}, {"Code": "299", "Category": "Payment Policy", "Description": "Rendering or billing provider not enrolled for date of service."}, {"Code": "299A", "Category": "Payment Policy", "Description": "The submitted rendering provider NPI is not registered with Denti-Cal. Prior to requesting re-adjudication for a dated, denied procedure on a CIF, the rendering provider NPI must be registered with Denti-Cal."}, {"Code": "300", "Category": "Payment Policy", "Description": "Procedure recently authorized to your office."}, {"Code": "300A", "Category": "Payment Policy", "Description": "Procedure recently authorized to a different provider. Please submit a letter from the patient if he/she wishes to remain with your office."}, {"Code": "313A", "Category": "Payment Policy", "Description": "Member benefits do not include dental services."}, {"Code": "326", "Category": "Payment Policy", "Description": "Procedures being denied on this document due to invalid response to the RTD or, if applicable, failure to provide radiographs/attachments for this EDI document."}];
+
+// Codes found in the denial export
+const IN_DATA = new Set(['326','002','275','004','086B','096','020H','290','289','299','299A','313A','267','069','004A','020C','020D']);
+
+const catClass = {
+  'Diagnostic/Preventive': 'c-diag',
+  'Oral Surgery':          'c-surgery',
+  'Drugs/Anesthesia':      'c-drugs',
+  'Periodontics':          'c-perio',
+  'Endodontics':           'c-endo',
+  'Restorative':           'c-restore',
+  'Prosthodontics':        'c-prosth',
+  'Orthodontic Services':  'c-ortho',
+  'Miscellaneous':         'c-misc',
+  'Payment Policy':        'c-policy'
+};
+
+const catTint = {
+  'Diagnostic/Preventive': 'tint-diag',
+  'Oral Surgery':          'tint-surgery',
+  'Drugs/Anesthesia':      'tint-drugs',
+  'Periodontics':          'tint-perio',
+  'Endodontics':           'tint-endo',
+  'Restorative':           'tint-restore',
+  'Prosthodontics':        'tint-prosth',
+  'Orthodontic Services':  'tint-ortho',
+  'Miscellaneous':         'tint-misc',
+  'Payment Policy':        'tint-policy'
+};
+
+let currentCat = 'All';
+let currentSearch = '';
+
+function highlight(text, term) {
+  if (!term) return text;
+  const re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  return text.replace(re, '<span class="highlight">$1</span>');
+}
+
+function render() {
+  const tbody = document.getElementById('tableBody');
+  const term = currentSearch.toLowerCase();
+
+  const filtered = ARC_DATA.filter(row => {
+    const catMatch = currentCat === 'All' || row.Category === currentCat;
+    const searchMatch = !term ||
+      row.Code.toLowerCase().includes(term) ||
+      row.Description.toLowerCase().includes(term) ||
+      row.Category.toLowerCase().includes(term);
+    return catMatch && searchMatch;
+  });
+
+  document.getElementById('resultsCount').textContent =
+    `Showing ${filtered.length} of 203 codes`;
+  document.getElementById('total-count').textContent = filtered.length;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" class="no-results">No codes match your search.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(row => {
+    const inData = IN_DATA.has(row.Code);
+    const tint = catTint[row.Category] || '';
+    const classes = [tint, inData ? 'in-data' : ''].filter(Boolean).join(' ');
+    const dot = `<span class="dot ${catClass[row.Category] || ''}"></span>`;
+    const codeHl = highlight(row.Code, currentSearch);
+    const descHl = highlight(row.Description, currentSearch);
+    const catHl  = highlight(row.Category, currentSearch);
+    return `<tr${classes ? ` class="${classes}"` : ''}>
+      <td class="col-code">${codeHl}</td>
+      <td class="col-cat">${dot}<span>${catHl}</span></td>
+      <td class="col-desc">${descHl}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Search
+document.getElementById('searchInput').addEventListener('input', e => {
+  currentSearch = e.target.value.trim();
+  render();
+});
+
+// Filter buttons
+document.getElementById('filterBtns').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
