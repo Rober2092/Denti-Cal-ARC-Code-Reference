@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Denti-Cal ARC Code Reference</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
 
@@ -61,7 +62,12 @@
     font-weight: 600;
     letter-spacing: 0.2px;
     border-bottom: 3px solid var(--navy-mid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
   }
+  .title-tooth { flex-shrink: 0; }
   .title-banner span {
     font-family: 'IBM Plex Mono', monospace;
     font-weight: 400;
@@ -330,6 +336,18 @@
 <body>
 
 <div class="title-banner">
+  <svg class="title-tooth" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
+    <style>
+      @keyframes toothPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+      @keyframes toothGlint { 0%,100%{opacity:.35} 50%{opacity:.9} }
+      .tb { animation: toothPulse 2.4s ease-in-out infinite; transform-origin:32px 32px; }
+      .tg { animation: toothGlint 2.4s ease-in-out infinite; }
+    </style>
+    <g class="tb">
+      <path d="M32,5 C26,5 14,9 14,21 C14,30 18,36 18,46 C18,54 20,61 26,61 C30,61 31,53 32,47 C33,53 34,61 38,61 C44,61 46,54 46,46 C46,36 50,30 50,21 C50,9 38,5 32,5 Z" fill="white" opacity="0.9"/>
+      <path class="tg" d="M21,13 C19,16 17,21 17,26" stroke="#1b3a5c" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </g>
+  </svg>
   Medi-Cal Dental (Denti-Cal) — Adjudication Reason Codes (ARC)
   <span>Official Source: dental.dhcs.ca.gov · Provider Handbook Section 7 (2025) · All 203 codes</span>
 </div>

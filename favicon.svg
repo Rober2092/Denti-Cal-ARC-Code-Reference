@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.06); }
+    }
+    @keyframes glint {
+      0%, 100% { opacity: 0.35; }
+      50%       { opacity: 0.85; }
+    }
+    .body  { animation: pulse 2.4s ease-in-out infinite; transform-origin: 32px 32px; }
+    .shine { animation: glint 2.4s ease-in-out infinite; }
+  </style>
+  <g class="body">
+    <!-- Tooth crown + two roots -->
+    <path d="
+      M32,5
+      C26,5 14,9 14,21
+      C14,30 18,36 18,46
+      C18,54 20,61 26,61
+      C30,61 31,53 32,47
+      C33,53 34,61 38,61
+      C44,61 46,54 46,46
+      C46,36 50,30 50,21
+      C50,9 38,5 32,5 Z"
+      fill="#1b3a5c"/>
+    <!-- Glint highlight -->
+    <path class="shine"
+      d="M21,13 C19,16 17,21 17,26"
+      stroke="white" stroke-width="3"
+      stroke-linecap="round" fill="none"/>
+  </g>
+</svg>
